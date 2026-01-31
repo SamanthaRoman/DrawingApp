@@ -57,7 +57,45 @@ struct ContentView: View {
     private func setupToolPicker() {
         toolPicker.setVisible(true, forFirstResponder: canvasView)
         toolPicker.addObserver(canvasView)
-        toolPicker.becomeFirstResponder()
+        canvasView.becomeFirstResponder()
     }
 }
+
+
+// Bridge between SwiftUI and UIKit
+struct CanvasView: UIViewRepresentable {
+    @Binding var canvasView: PKCanvasView
+    @Binding var toolPicker: PKToolPicker
+    
+    func makeUIView(context: Context) -> PKCanvasView {
+        if #available(iOS 14.0, *) {
+            canvasView.drawingPolicy = .anyInput
+        } else {
+            canvasView.allowsFingerDrawing = true
+        }
+        canvasView.delegate = context.coordinator
+        return canvasView
+    }
+    
+    // Update SwiftUI from the UIKit changes
+    
+    func updateUIView(_ uiView: PKCanvasView, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+            Coordinator(self)
+        }
+        
+        class Coordinator: NSObject, PKCanvasViewDelegate {
+            var parent: CanvasView
+            
+            init(_ parent: CanvasView) {
+                self.parent = parent
+            }
+            
+            func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
+                print("drawing is working on every stroke")
+            }
+        }
+    }
+    
 
